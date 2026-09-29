@@ -1,0 +1,14 @@
+{
+  "name": "interntrack-week3-testing-debugging",
+  "version": "1.0.0",
+  "description": "Week 3 Software Testing and Debugging Exercise",
+  "main": "src/calculator.js",
+  "scripts": {
+    "test": "jest --coverage",
+    "test:watch": "jest --watch",
+    "test:debug": "node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand"
+  },
+  "devDependencies": {
+    "jest": "^30.2.0"
+  }
+}
