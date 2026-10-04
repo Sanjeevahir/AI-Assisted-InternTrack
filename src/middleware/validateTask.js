@@ -1,12 +1,35 @@
 const { z } = require("zod");
 
 const taskSchema = z.object({
-    title: z.string().trim().min(1, "Task title is required").max(150),
-    description: z.string().optional(),
-    status: z.enum(["PLANNED", "IN_PROGRESS", "REVIEW", "COMPLETED"]).optional(),
-    priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional(),
-    assignee: z.string().max(100).optional(),
-    due_date: z.string().optional()
+    title: z
+        .string()
+        .trim()
+        .min(1, "Task title is required")
+        .max(150, "Task title cannot exceed 150 characters"),
+
+    description: z
+        .string()
+        .max(2000, "Description cannot exceed 2000 characters")
+        .optional(),
+
+    status: z
+        .enum(["PLANNED", "IN_PROGRESS", "REVIEW", "COMPLETED"])
+        .optional(),
+
+    priority: z
+        .enum(["LOW", "MEDIUM", "HIGH"])
+        .optional(),
+
+    assignee: z
+        .string()
+        .trim()
+        .max(100, "Assignee cannot exceed 100 characters")
+        .optional(),
+
+    due_date: z
+        .string()
+        .date("Due date must be a valid date in YYYY-MM-DD format")
+        .optional()
 });
 
 const validateTask = (req, res, next) => {
@@ -16,7 +39,7 @@ const validateTask = (req, res, next) => {
         return res.status(400).json({
             success: false,
             message: "Invalid task data",
-            errors: result.error.errors
+            errors: result.error.issues
         });
     }
 
@@ -24,4 +47,4 @@ const validateTask = (req, res, next) => {
     next();
 };
 
-module.exports = validateTask;
+ module.exports = validateTask;

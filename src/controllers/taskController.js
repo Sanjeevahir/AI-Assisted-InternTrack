@@ -1,36 +1,96 @@
+
 const pool = require("../db/pool");
 
-const createTask = async (req, res) => {
+// Get all tasks
+const getAllTasks = async (req, res, next) => {
     try {
-        const { title, description, status = "PLANNED", priority = "MEDIUM", assignee, due_date } = req.body;
         const result = await pool.query(
-            `INSERT INTO tasks (title, description, status, priority, assignee, due_date)
-             VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-            [title, description || null, status, priority, assignee || null, due_date || null]
+            "SELECT * FROM tasks ORDER BY id DESC"
         );
-        res.status(201).json({ success: true, message: "Task created successfully", data: result.rows[0] });
+
+        res.status(200).json({
+            success: true,
+            count: result.rows.length,
+            data: result.rows
+        });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: "Failed to create task" });
+        next(error);
     }
 };
 
-const getTaskById = async (req, res) => {
+// Create a task
+const createTask = async (req, res, next) => {
     try {
-        const result = await pool.query("SELECT * FROM tasks WHERE id = $1", [req.params.id]);
+        const {
+            title,
+            description,
+            status = "PLANNED",
+            priority = "MEDIUM",
+            assignee,
+            due_date
+        } = req.body;
+
+        const result = await pool.query(
+            `INSERT INTO tasks
+                (title, description, status, priority, assignee, due_date)
+             VALUES ($1, $2, $3, $4, $5, $6)
+             RETURNING *`,
+            [
+                title,
+                description || null,
+                status,
+                priority,
+                assignee || null,
+                due_date || null
+            ]
+        );
+
+        res.status(201).json({
+            success: true,
+            message: "Task created successfully",
+            data: result.rows[0]
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Get a task by ID
+const getTaskById = async (req, res, next) => {
+    try {
+        const result = await pool.query(
+            "SELECT * FROM tasks WHERE id = $1",
+            [req.params.id]
+        );
+
         if (result.rows.length === 0) {
-            return res.status(404).json({ success: false, message: "Task not found" });
+            return res.status(404).json({
+                success: false,
+                message: "Task not found"
+            });
         }
-        res.status(200).json({ success: true, data: result.rows[0] });
+
+        res.status(200).json({
+            success: true,
+            data: result.rows[0]
+        });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: "Failed to fetch task" });
+        next(error);
     }
 };
 
-const updateTask = async (req, res) => {
+// Update a task
+const updateTask = async (req, res, next) => {
     try {
-        const { title, description, status, priority, assignee, due_date } = req.body;
+        const {
+            title,
+            description,
+            status,
+            priority,
+            assignee,
+            due_date
+        } = req.body;
+
         const result = await pool.query(
             `UPDATE tasks
              SET title = COALESCE($1, title),
@@ -40,30 +100,64 @@ const updateTask = async (req, res) => {
                  assignee = COALESCE($5, assignee),
                  due_date = COALESCE($6, due_date),
                  updated_at = CURRENT_TIMESTAMP
-             WHERE id = $7 RETURNING *`,
-            [title, description, status, priority, assignee, due_date, req.params.id]
+             WHERE id = $7
+             RETURNING *`,
+            [
+                title,
+                description,
+                status,
+                priority,
+                assignee,
+                due_date,
+                req.params.id
+            ]
         );
+
         if (result.rows.length === 0) {
-            return res.status(404).json({ success: false, message: "Task not found" });
+            return res.status(404).json({
+                success: false,
+                message: "Task not found"
+            });
         }
-        res.status(200).json({ success: true, message: "Task updated successfully", data: result.rows[0] });
+
+        res.status(200).json({
+            success: true,
+            message: "Task updated successfully",
+            data: result.rows[0]
+        });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: "Failed to update task" });
+        next(error);
     }
 };
 
-const deleteTask = async (req, res) => {
+// Delete a task
+const deleteTask = async (req, res, next) => {
     try {
-        const result = await pool.query("DELETE FROM tasks WHERE id = $1 RETURNING id", [req.params.id]);
+        const result = await pool.query(
+            "DELETE FROM tasks WHERE id = $1 RETURNING id",
+            [req.params.id]
+        );
+
         if (result.rows.length === 0) {
-            return res.status(404).json({ success: false, message: "Task not found" });
+            return res.status(404).json({
+                success: false,
+                message: "Task not found"
+            });
         }
-        res.status(200).json({ success: true, message: "Task deleted successfully" });
+
+        res.status(200).json({
+            success: true,
+            message: "Task deleted successfully"
+        });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: "Failed to delete task" });
+        next(error);
     }
 };
 
-module.exports = { createTask, getTaskById, updateTask, deleteTask };
+module.exports = {
+    getAllTasks,
+    createTask,
+    getTaskById,
+    updateTask,
+    deleteTask
+};

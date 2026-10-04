@@ -3,6 +3,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const taskRoutes = require("./routes/tasks");
+const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
 app.use(helmet());
@@ -26,5 +27,6 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/tasks", taskRoutes);
+app.use(errorHandler);
 
 module.exports = app;
